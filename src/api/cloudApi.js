@@ -90,6 +90,7 @@ export const cloudApi = {
   },
   logout: () => request('/logout', { method: 'POST' }),
   listFiles: () => request('/files'),
+  monitorStats: () => request('/api/monitor/stats'),
   deleteFile: (filename) => {
     const safeName = String(filename).split(/[\\/]/).pop();
     return request(`/files/${encodeURIComponent(safeName)}`, { method: 'DELETE' });

@@ -14,6 +14,7 @@ export default defineConfig(({ mode }) => {
       const proxyRoute = { target: url.origin, changeOrigin: true };
       proxy = {
         '^/api/health$': { ...proxyRoute, rewrite: () => '/' },
+        '^/api/monitor/stats$': proxyRoute,
         '^/login$': proxyRoute,
         '^/logout$': proxyRoute,
         '^/files$': proxyRoute,

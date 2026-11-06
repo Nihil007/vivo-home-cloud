@@ -1,9 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Download, Eye, EyeOff, LogOut, Trash2 } from 'lucide-react';
 import { cloudApi, UnauthorizedError } from './api/cloudApi.js';
+import ServerMonitor from './pages/ServerMonitor.jsx';
 
 export default function App() {
   const [authState, setAuthState] = useState('checking');
+  const [activePage, setActivePage] = useState('monitor');
   const [authError, setAuthError] = useState('');
   const [loginMessage, setLoginMessage] = useState('');
   const [username, setUsername] = useState('');
@@ -26,6 +28,7 @@ export default function App() {
     try {
       const listing = await cloudApi.listFiles();
       setFiles(Array.isArray(listing?.files) ? listing.files : []);
+      setActivePage('monitor');
       setAuthState('authenticated');
       cloudApi.health().then(setHealth).catch(() => setHealth(null));
     } catch (e) {
@@ -41,7 +44,7 @@ export default function App() {
 
   useEffect(() => { verifySession(); }, []);
 
-  function handleProtectedError(e) {
+  const handleProtectedError = useCallback((e) => {
     if (e instanceof UnauthorizedError) {
       setFiles([]);
       setAuthState('unauthenticated');
@@ -50,7 +53,7 @@ export default function App() {
     } else {
       setError(e.message || 'Something went wrong. Please try again.');
     }
-  }
+  }, []);
 
   async function refreshFiles() {
     setError('');
@@ -75,6 +78,7 @@ export default function App() {
       const listing = await cloudApi.listFiles();
       setFiles(Array.isArray(listing?.files) ? listing.files : []);
       setPassword('');
+      setActivePage('monitor');
       setAuthState('authenticated');
       cloudApi.health().then(setHealth).catch(() => setHealth(null));
     } catch (e) {
@@ -102,6 +106,7 @@ export default function App() {
     try {
       await cloudApi.logout();
       setFiles([]);
+      setActivePage('monitor');
       setLoginMessage('You have been logged out.');
       setPassword('');
       setAuthState('unauthenticated');
@@ -174,6 +179,8 @@ export default function App() {
     }
   }
 
+  const authenticatedHeader = <header className="topbar"><a className="brand" href="/"><span className="brand-mark">V</span>Vivo<span>Cloud</span></a><nav className="main-nav" aria-label="Main navigation"><button className={activePage === 'storage' ? 'active' : ''} type="button" onClick={() => setActivePage('storage')}>Storage</button><button className={activePage === 'monitor' ? 'active' : ''} type="button" onClick={() => setActivePage('monitor')}>Server Monitor</button></nav><div className="topbar-actions"><span className={`status ${health?.status === 'online' ? 'online' : ''}`}><i />{health?.status === 'online' ? 'Server online' : 'Server'}</span><button className="logout-button" type="button" onClick={logout} disabled={loggingOut}>{loggingOut ? <span className="spinner" /> : <LogOut size={16} />}<span>{loggingOut ? 'Signing out…' : 'Log out'}</span></button></div></header>;
+
   if (authState === 'checking') {
     return <main className="auth-shell"><div className="auth-card auth-status-card"><div className="brand auth-brand"><span className="brand-mark">V</span>Vivo<span>Cloud</span></div><p className="auth-loading"><span className="spinner" /> Checking your session…</p></div></main>;
   }
@@ -186,9 +193,13 @@ export default function App() {
     return <main className="auth-shell"><section className="auth-card"><div className="brand auth-brand"><span className="brand-mark">V</span>Vivo<span>Cloud</span></div><p className="eyebrow auth-eyebrow">YOUR PERSONAL CLOUD</p><h1>Welcome back</h1><p className="auth-description">Sign in to access your files.</p>{loginMessage && <p className="auth-message" role="alert">{loginMessage}</p>}<form className="login-form" onSubmit={login}><label htmlFor="username">Username</label><input id="username" name="username" autoComplete="username" value={username} onChange={(event) => setUsername(event.target.value)} required disabled={loginBusy} /><label htmlFor="password">Password</label><div className="password-input-wrap"><input id="password" name="password" type={showPassword ? 'text' : 'password'} autoComplete="current-password" value={password} onChange={(event) => setPassword(event.target.value)} required disabled={loginBusy} /><button className="password-toggle" type="button" onClick={() => setShowPassword((shown) => !shown)} aria-label={showPassword ? 'Hide password' : 'Show password'} aria-pressed={showPassword} disabled={loginBusy}>{showPassword ? <EyeOff size={18} /> : <Eye size={18} />}</button></div><button className="login-submit" type="submit" disabled={loginBusy || !username.trim() || !password}>{loginBusy ? <><span className="spinner" /> Signing in…</> : 'Sign in'}</button></form><p className="auth-security-note">Private access to your personal cloud.</p></section></main>;
   }
 
+  if (activePage === 'monitor') {
+    return <main className="shell">{authenticatedHeader}<ServerMonitor onUnauthorized={handleProtectedError} /><footer>Vivo Cloud <span>·</span> Your own little corner of the internet</footer></main>;
+  }
+
   return (
     <main className="shell">
-      <header className="topbar"><a className="brand" href="/"><span className="brand-mark">V</span>Vivo<span>Cloud</span></a><div className="topbar-actions"><span className={`status ${health?.status === 'online' ? 'online' : ''}`}><i />{health?.status === 'online' ? 'Server online' : 'Server'}</span><button className="logout-button" type="button" onClick={logout} disabled={loggingOut}>{loggingOut ? <span className="spinner" /> : <LogOut size={16} />}<span>{loggingOut ? 'Signing out…' : 'Log out'}</span></button></div></header>
+      {authenticatedHeader}
       <section className="hero"><p className="eyebrow">YOUR PERSONAL CLOUD</p><h1>Your files,<br /><em>within reach.</em></h1><p className="intro">A private space for the things you want to keep close.</p><label className="upload-button">{busy ? 'Uploading…' : '↑  Upload a file'}<input type="file" onChange={upload} disabled={busy} /></label></section>
       <section className="files-panel"><div className="panel-heading"><div><p className="eyebrow">YOUR LIBRARY</p><h2>Files <span>{files.length}</span></h2></div><button className="refresh" onClick={refreshFiles} aria-label="Refresh files">↻</button></div>
         {error && <p className="notice" role="alert">{error}</p>}

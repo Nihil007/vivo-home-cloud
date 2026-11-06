@@ -12,6 +12,10 @@ React and Vite frontend for the existing Vivo Cloud Flask server. Work on the fr
 
 The API client always uses relative paths. In development, the Vite proxy sends `/api/health` to the Flask `/` health route and forwards `/files`, `/upload`, and `/download/...` at their original paths. `VITE_DEV_API_TARGET` is validated as an HTTP or HTTPS URL before it is used. In production the health check uses `/` and all API paths stay relative to Flask's origin. Vite variables prefixed with `VITE_` are public client-side configuration; never put passwords, keys, tokens, or other secrets in them.
 
+## Server Monitor
+
+The authenticated Server Monitor page reads `GET /api/monitor/stats` through the shared API client. Development Vite proxies this route to Flask; production uses the relative same-origin path. The page refreshes every five seconds, keeps the latest successful readings if a later request fails, and displays unavailable Android metrics as unavailable. CPU, memory, storage, uptime, temperatures, network traffic, and service status come from the API response; no sample monitoring values are used.
+
 From the frontend project root, copy the example once:
 
 ```powershell
