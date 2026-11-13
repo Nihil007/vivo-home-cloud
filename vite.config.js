@@ -17,10 +17,14 @@ export default defineConfig(({ mode }) => {
         '^/api/monitor/stats$': proxyRoute,
         '^/login$': proxyRoute,
         '^/logout$': proxyRoute,
-        '^/files$': proxyRoute,
+        // Match the listing endpoint both at root and with `?path=...`.
+        // Vite's proxy context sees the query string as part of the URL.
+        '^/files(?:\\?.*)?$': proxyRoute,
         '^/files/.*': proxyRoute,
+        '^/folders$': proxyRoute,
         '^/upload$': proxyRoute,
         '^/download/.*': proxyRoute,
+        '^/preview/.*': proxyRoute,
       };
     } catch (error) {
       console.warn(`[Vivo Cloud] Invalid VITE_DEV_API_TARGET: ${error.message}`);

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { Download, Eye, EyeOff, LogOut, Trash2 } from 'lucide-react';
 import { cloudApi, UnauthorizedError } from './api/cloudApi.js';
 import ServerMonitor from './pages/ServerMonitor.jsx';
+import StoragePage from './pages/StoragePage.jsx';
 
 export default function App() {
   const [authState, setAuthState] = useState('checking');
@@ -196,6 +197,8 @@ export default function App() {
   if (activePage === 'monitor') {
     return <main className="shell">{authenticatedHeader}<ServerMonitor onUnauthorized={handleProtectedError} /><footer>Vivo Cloud <span>·</span> Your own little corner of the internet</footer></main>;
   }
+
+  if (activePage === 'storage') return <main className="storage-root"><div className="storage-topbar-wrap">{authenticatedHeader}</div><StoragePage onUnauthorized={handleProtectedError} /></main>;
 
   return (
     <main className="shell">

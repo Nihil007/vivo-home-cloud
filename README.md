@@ -4,7 +4,7 @@ React and Vite frontend for the existing Vivo Cloud Flask server. Work on the fr
 
 ## Environment configuration
 
-`.env.example` is the version-controlled example. `.env.development.local` is your private, ignored Windows development configuration. The address `192.168.1.100` is only a placeholder, not the Vivo's known address.
+`.env.example` is the version-controlled template. `.env.development.local` is your private, ignored Windows development configuration; keep the phone's actual LAN address there only.
 
 - `VITE_VIVO_HOST` and `VITE_VIVO_PORT` record the phone's LAN host and Flask port (`5000`).
 - `VITE_API_BASE_URL` stays empty in development so the browser uses same-origin relative paths.
